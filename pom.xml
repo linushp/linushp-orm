@@ -8,7 +8,7 @@
     <artifactId>linushp-orm</artifactId>
     <version>1.0.2</version>
     <name>linushp-orm</name>
-    <description>java serialize tools</description>
+    <description>java数据库简单ORM框架</description>
     <url>https://github.com/linushp/linushp-orm</url>
 
     <properties>
