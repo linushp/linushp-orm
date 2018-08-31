@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.linushp</groupId>
-    <artifactId>simple-serialize-proto-java</artifactId>
+    <artifactId>linushp-orm</artifactId>
     <version>1.0.2</version>
-    <name>simple-serialize-proto-java</name>
+    <name>linushp-orm</name>
     <description>java serialize tools</description>
-    <url>https://github.com/linushp/simple-serialize-proto</url>
+    <url>https://github.com/linushp/linushp-orm</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -25,9 +25,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git@github.com:linushp/simple-serialize-proto.git</connection>
-        <developerConnection>scm:git:git@github.com:linushp/simple-serialize-proto.git</developerConnection>
-        <url>git@github.com:linushp/simple-serialize-proto.git</url>
+        <connection>scm:git:git@github.com:linushp/linushp-orm.git</connection>
+        <developerConnection>scm:git:git@github.com:linushp/linushp-orm.git</developerConnection>
+        <url>git@github.com:linushp/linushp-orm.git</url>
     </scm>
 
     <licenses>
@@ -36,6 +36,16 @@
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
+
+
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.linushp</groupId>
+            <artifactId>linushp-commons</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+    </dependencies>
 
 
     <build>
