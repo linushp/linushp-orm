@@ -1,5 +1,26 @@
 # 使用简单
 
+
+## POJO
+```
+public class AgentPo {
+
+    private long aid;
+    private long oid;
+    private String csid;
+    private String email;
+    private String password;
+    private String name;
+    private String avatar;
+    private int role;
+    private int service_ceiling;
+    private long group_id;
+    private int forbidden;
+}
+```
+
+
+## DAO
 ```
 
 public class AgentDao extends MyBaseDAO<AgentPo>{
@@ -27,6 +48,20 @@ public class AgentDao extends MyBaseDAO<AgentPo>{
     }
 
 
+}
+
+```
+
+
+
+## MyBaseDAO
+
+```
+
+public class MyBaseDAO<T> extends DataAccessObject<T> {
+    public MyBaseDAO(Class<T> clazz, String tableName) {
+        super(clazz, tableName, MyConnectionFactory.getInstance());
+    }
 }
 
 ```
