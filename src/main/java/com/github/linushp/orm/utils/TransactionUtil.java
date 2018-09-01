@@ -1,6 +1,5 @@
 package com.github.linushp.orm.utils;
 
-import com.github.linushp.orm.ConnectionFactory;
 import com.github.linushp.orm.model.SqlSession;
 
 import java.sql.Connection;
@@ -13,12 +12,10 @@ public class TransactionUtil {
     private static ThreadLocal<AtomicInteger> localAtomicInteger = new ThreadLocal<>();
 
 
-    public static void beginTransaction(ConnectionFactory connectionFactory) throws SQLException {
+    public static void beginTransaction(Connection connection) throws SQLException {
 
         AtomicInteger atomicInteger = getAtomicInteger();
-
         if (atomicInteger.get() == 0) {
-            Connection connection = connectionFactory.getConnection();
             connection.setAutoCommit(false);
             localSqlSession.set(new SqlSession(connection, false));
             atomicInteger.incrementAndGet();
@@ -81,6 +78,21 @@ public class TransactionUtil {
 
     public static SqlSession getSqlSession() {
         return localSqlSession.get();
+    }
+
+
+    public static Object doTransaction(Connection connection, SqlRunner sqlRunner) throws SQLException {
+        Object result = null;
+        try {
+            beginTransaction(connection);
+            result = sqlRunner.doRun();
+            commitTransaction();
+        } catch (Exception e) {
+            rollbackTransaction();
+        } finally {
+            endTransaction();
+        }
+        return result;
     }
 
 }
