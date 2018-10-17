@@ -35,6 +35,11 @@ public class DataAccessObject<T> {
     protected DataAccess dataAccess;
 
 
+    public DataAccessObject(Class<T> clazz, String tableName) {
+        this.clazz = clazz;
+        this.tableName = tableName;
+    }
+
     /**
      * 创建一个数据访问对象
      *
@@ -79,7 +84,7 @@ public class DataAccessObject<T> {
 
 
     public void setDataModifyListener(DataModifyListener dataModifyListener) {
-        this.dataAccess.setDataModifyListener(dataModifyListener);
+        this.getDataAccess().setDataModifyListener(dataModifyListener);
     }
 
     /**
@@ -88,7 +93,7 @@ public class DataAccessObject<T> {
      * @param resultSetParser
      */
     protected void setResultSetParser(ResultSetParser<T> resultSetParser) {
-        this.dataAccess.setResultSetParser(resultSetParser);
+        this.getDataAccess().setResultSetParser(resultSetParser);
     }
 
 
@@ -163,7 +168,7 @@ public class DataAccessObject<T> {
 
         String idString = StringUtils.join(idList, ",", stringParser);
         String sql = "select " + selectFields + " from " + schemaTableName() + " where `" + idFieldName + "` in (" + idString + ")";
-        List<Map<String, ?>> mapList = dataAccess.queryTemp(sql);
+        List<Map<String, ?>> mapList = getDataAccess().queryTemp(sql);
         return BeanUtils.mapListToBeanList(clazz, mapList);
     }
 
@@ -184,7 +189,7 @@ public class DataAccessObject<T> {
 
     public List<T> findByWhere(String whereSql, Object... args) throws Exception {
         String sql = "select " + selectFields + " from " + schemaTableName() + " " + whereSql;
-        return dataAccess.query(clazz, sql, args);
+        return getDataAccess().query(clazz, sql, args);
     }
 
     public Page<T> findPageByExample(int pageNo, int pageSize, Map<String, Object> example) throws Exception {
@@ -257,7 +262,7 @@ public class DataAccessObject<T> {
         List<T> dataList;
         if (totalCount > 0) {
             String sqlList = "select " + selectFields + " from " + schemaTableName() + " " + whereSql + " " + orderBy + " limit  " + beginIndex + "," + pageSize;
-            dataList = dataAccess.query(clazz, sqlList, whereArgs);
+            dataList = getDataAccess().query(clazz, sqlList, whereArgs);
         } else {
             dataList = new ArrayList<>();
         }
@@ -305,7 +310,7 @@ public class DataAccessObject<T> {
      */
     public Long countByWhereSql(String whereSql, Object... whereArgs) throws Exception {
         String sqlCount = "select count(0) from " + schemaTableName() + " " + whereSql;
-        Object totalCount = dataAccess.queryValue(sqlCount, whereArgs);
+        Object totalCount = getDataAccess().queryValue(sqlCount, whereArgs);
         return (Long) CastBasicTypeUtils.toBasicTypeOf(totalCount, Long.class);
     }
 
@@ -364,7 +369,7 @@ public class DataAccessObject<T> {
      */
     public UpdateResult deleteByWhereSql(String whereSql, Object... whereArgs) throws Exception {
         String sql = "delete from " + schemaTableName() + " " + whereSql;
-        return dataAccess.update(sql, whereArgs);
+        return getDataAccess().update(sql, whereArgs);
     }
 
 
@@ -408,7 +413,7 @@ public class DataAccessObject<T> {
                 values.addAll(whereArgsList);
             }
 
-            return dataAccess.update(sql, values);
+            return getDataAccess().update(sql, values);
         }
         return new UpdateResult("params is empty");
     }
@@ -448,7 +453,7 @@ public class DataAccessObject<T> {
             String valuesSql = StringUtils.join(valuesQuota, ",");
 
             String sql = "insert into " + schemaTableName() + "(" + filedSql + ") values (" + valuesSql + ")";
-            return dataAccess.update(sql, values);
+            return getDataAccess().update(sql, values);
         }
 
         return new UpdateResult("params is empty");
@@ -525,7 +530,7 @@ public class DataAccessObject<T> {
             String allValuesSql = StringUtils.join(allValuesSqlList, ",");
             String sql = "insert into " + schemaTableName() + " (" + filedSql + ") values " + allValuesSql;
 
-            return dataAccess.update(sql, allValues);
+            return getDataAccess().update(sql, allValues);
         }
 
 

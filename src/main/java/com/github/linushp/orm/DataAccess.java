@@ -26,6 +26,9 @@ public class DataAccess {
         this.connectionFactory = connectionFactory;
     }
 
+    public DataAccess() {
+    }
+
     public ConnectionFactory getConnectionFactory() {
         return this.connectionFactory;
     }
@@ -291,8 +294,7 @@ public class DataAccess {
             return connection1;
         }
 
-        Connection connection = connectionFactory.getConnection();
-        connection.setAutoCommit(true);
+        Connection connection = getConnectionFactory().getConnection();
         return new SqlSession(connection, true);
     }
 
