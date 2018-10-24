@@ -62,6 +62,11 @@ public class ResultSetUtils {
     }
 
 
+    public static List<Map<String, ?>> resultSetToMapList(ResultSet resultSet) throws SQLException {
+        return resultSetToMapList(resultSet, false);
+    }
+
+
     /**
      * 处理结果集, 得到 Map 的一个 List, 其中一个 Map 对象对应一条记录
      *
@@ -69,7 +74,7 @@ public class ResultSetUtils {
      * @return
      * @throws SQLException
      */
-    public static List<Map<String, ?>> resultSetToMapList(ResultSet resultSet) throws SQLException {
+    public static List<Map<String, ?>> resultSetToMapList(ResultSet resultSet, boolean isToLowerCaseKey) throws SQLException {
         List<Map<String, ?>> values = new ArrayList<>();
         if (resultSet != null) {
             List<String> columnLabels = getColumnLabels(resultSet);
@@ -80,7 +85,12 @@ public class ResultSetUtils {
 
                 for (String columnLabel : columnLabels) {
                     Object value = resultSet.getObject(columnLabel);
-                    map.put(columnLabel, value);
+
+                    if (isToLowerCaseKey) {
+                        map.put(columnLabel.toLowerCase(), value);
+                    } else {
+                        map.put(columnLabel, value);
+                    }
                 }
                 // 11. 把一条记录的一个 Map 对象放入 5 准备的 List 中
                 values.add(map);

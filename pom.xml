@@ -6,7 +6,7 @@
 
     <groupId>com.github.linushp</groupId>
     <artifactId>linushp-orm</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <name>linushp-orm</name>
     <description>java数据库简单ORM框架</description>
     <url>https://github.com/linushp/linushp-orm</url>
@@ -14,6 +14,20 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>cococenter</id>
+            <name>NexusReleaseRepository</name>
+            <url>http://47.52.207.116/nexus/content/repositories/cococenter/</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>NexusSnapshotRepository</name>
+            <url>http://47.52.207.116/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
 
     <developers>
         <developer>
