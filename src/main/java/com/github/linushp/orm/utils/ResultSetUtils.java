@@ -11,25 +11,25 @@ import java.util.*;
 
 public class ResultSetUtils {
 
-    public static <T> List<T> resultSetToEntityList(ResultSet resultSet, Class<T> tClass) throws Exception {
+    public static <T> List<T> resultSetToEntityList(ResultSet resultSet, Class<T> tClass, boolean isIgnoreCase) throws Exception {
         List<String> columnLabels = getColumnLabels(resultSet);
         Set<String> columnLabelSet = new HashSet<>(columnLabels);
         List<T> tList = new ArrayList<>();
         while (resultSet.next()) {
-            tList.add(resultSetToEntity(columnLabelSet, resultSet, tClass));
+            tList.add(resultSetToEntity(columnLabelSet, resultSet, tClass,isIgnoreCase));
         }
         return tList;
     }
 
 
-    public static <T> T resultSetToEntity(ResultSet resultSet, Class<T> tClass) throws Exception {
+    public static <T> T resultSetToEntity(ResultSet resultSet, Class<T> tClass,boolean isIgnoreCase) throws Exception {
         List<String> columnLabels = getColumnLabels(resultSet);
         Set<String> columnLabelSet = new HashSet<>(columnLabels);
-        return resultSetToEntity(columnLabelSet, resultSet, tClass);
+        return resultSetToEntity(columnLabelSet, resultSet, tClass,isIgnoreCase);
     }
 
 
-    private static <T> T resultSetToEntity(Set<String> columnLabelSet, ResultSet resultSet, Class<T> tClass) throws Exception {
+    private static <T> T resultSetToEntity(Set<String> columnLabelSet, ResultSet resultSet, Class<T> tClass,boolean isIgnoreCase) throws Exception {
 
         T obj = tClass.newInstance();
 
@@ -37,7 +37,7 @@ public class ResultSetUtils {
 
         for (BeanField beanField : beanFields) {
 
-            Object value = getValueOfResultSet(columnLabelSet, resultSet, beanField.getFieldName(), beanField.getFieldNameUnderline());
+            Object value = getValueOfResultSet(columnLabelSet, resultSet, beanField,isIgnoreCase);
 
             beanField.setBeanValue_autoConvert(obj, value);
         }
@@ -46,18 +46,61 @@ public class ResultSetUtils {
     }
 
 
-    private static Object getValueOfResultSet(Set<String> columnLabelSet, ResultSet resultSet, String fieldName1, String fieldName2) throws SQLException {
+    private static Object getValueOfResultSet(Set<String> columnLabelSet, ResultSet resultSet, BeanField beanField, boolean isIgnoreCase) throws SQLException {
 
+        String fieldName1 = beanField.getFieldName();
+        String fieldName2 = beanField.getFieldNameUnderline();
+
+        if (beanField.getField().getType() == Integer.class || beanField.getField().getType() == int.class) {
+            return getResultSetIntegerValue(columnLabelSet, resultSet, fieldName1, fieldName2, isIgnoreCase);
+        }
+
+        return getResultSetObjectValue(columnLabelSet, resultSet, fieldName1, fieldName2,isIgnoreCase);
+    }
+
+
+    private static Object getResultSetObjectValue(Set<String> columnLabelSet, ResultSet resultSet, String fieldName1, String fieldName2,boolean isIgnoreCase) throws SQLException {
         if (columnLabelSet.contains(fieldName1)) {
             return resultSet.getObject(fieldName1);
         }
-
         if (columnLabelSet.contains(fieldName2)) {
             return resultSet.getObject(fieldName2);
         }
 
-        return null;
+        if (isIgnoreCase){
+            String fieldName11 = fieldName1.toLowerCase();
+            if (columnLabelSet.contains(fieldName11)) {
+                return resultSet.getObject(fieldName11);
+            }
+            String fieldName21 = fieldName2.toLowerCase();
+            if (columnLabelSet.contains(fieldName21)) {
+                return resultSet.getObject(fieldName21);
+            }
+        }
 
+        return null;
+    }
+
+
+    private static int getResultSetIntegerValue(Set<String> columnLabelSet, ResultSet resultSet, String fieldName1, String fieldName2,boolean isIgnoreCase) throws SQLException {
+        if (columnLabelSet.contains(fieldName1)) {
+            return resultSet.getInt(fieldName1);
+        }
+        if (columnLabelSet.contains(fieldName2)) {
+            return resultSet.getInt(fieldName2);
+        }
+
+        if (isIgnoreCase){
+            String fieldName11 = fieldName1.toLowerCase();
+            if (columnLabelSet.contains(fieldName11)) {
+                return resultSet.getInt(fieldName11);
+            }
+            String fieldName21 = fieldName2.toLowerCase();
+            if (columnLabelSet.contains(fieldName21)) {
+                return resultSet.getInt(fieldName21);
+            }
+        }
+        return 0;
     }
 
 

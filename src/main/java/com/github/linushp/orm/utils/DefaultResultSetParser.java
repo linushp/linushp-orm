@@ -20,7 +20,7 @@ public class DefaultResultSetParser<T> implements ResultSetParser<T> {
 
     @Override
     public List<T> parseResultSet(ResultSet resultSet) throws Exception {
-        return ResultSetUtils.resultSetToEntityList(resultSet, this.clazz);
+        return ResultSetUtils.resultSetToEntityList(resultSet, this.clazz,false);
 //        List<Map<String, ?>> mapList = ResultSetUtils.resultSetToMapList(resultSet);
 //        return BeanUtils.mapListToBeanList(this.clazz, mapList);
     }
