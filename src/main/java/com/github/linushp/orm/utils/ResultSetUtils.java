@@ -1,7 +1,6 @@
 package com.github.linushp.orm.utils;
 
 
-
 import com.github.linushp.commons.BeanField;
 import com.github.linushp.commons.BeanFieldUtils;
 

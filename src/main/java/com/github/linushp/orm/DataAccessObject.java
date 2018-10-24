@@ -385,7 +385,6 @@ public class DataAccessObject<T> {
     }
 
 
-
     public UpdateResult updateById(T entity, Object id) throws Exception {
         Map<String, Object> newValues = BeanUtils.beanToMap(entity, true, true);
         return updateByWhereSql(newValues, "where `id` = ? ", id);
@@ -579,8 +578,8 @@ public class DataAccessObject<T> {
         return this.deleteByWhereSql(toFieldWhereSql(fieldName), value);
     }
 
-    public UpdateResult updateByField(Map<String, Object> newValues,String fieldName, Object value) throws Exception {
-        return this.updateByWhereSql(newValues,toFieldWhereSql(fieldName),value);
+    public UpdateResult updateByField(Map<String, Object> newValues, String fieldName, Object value) throws Exception {
+        return this.updateByWhereSql(newValues, toFieldWhereSql(fieldName), value);
     }
 
     public Long countByField(String fieldName, Object value) throws Exception {
@@ -589,7 +588,7 @@ public class DataAccessObject<T> {
 
     private String toFieldWhereSql(String fieldName) throws Exception {
         fieldName = fieldName.trim();
-        if (fieldName.isEmpty()){
+        if (fieldName.isEmpty()) {
             throw new Exception("fieldName can not be empty");
         }
         return "where `" + fieldName + "` = ?";
