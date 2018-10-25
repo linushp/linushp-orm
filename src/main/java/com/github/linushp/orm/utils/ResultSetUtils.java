@@ -3,6 +3,7 @@ package com.github.linushp.orm.utils;
 
 import com.github.linushp.commons.BeanField;
 import com.github.linushp.commons.BeanFieldUtils;
+import com.github.linushp.commons.CastBasicTypeUtils;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -67,17 +68,24 @@ public class ResultSetUtils {
             return resultSet.getObject(fieldName2);
         }
 
-        if (isIgnoreCase){
-            String fieldName11 = fieldName1.toLowerCase();
-            if (columnLabelSet.contains(fieldName11)) {
-                return resultSet.getObject(fieldName11);
-            }
-            String fieldName21 = fieldName2.toLowerCase();
+        if (isIgnoreCase) {
+            String fieldName21 = fieldName1.toLowerCase();
             if (columnLabelSet.contains(fieldName21)) {
                 return resultSet.getObject(fieldName21);
             }
+            String fieldName22 = fieldName2.toLowerCase();
+            if (columnLabelSet.contains(fieldName22)) {
+                return resultSet.getObject(fieldName22);
+            }
+            String fieldName31 = fieldName1.toUpperCase();
+            if (columnLabelSet.contains(fieldName31)) {
+                return resultSet.getObject(fieldName31);
+            }
+            String fieldName32 = fieldName2.toUpperCase();
+            if (columnLabelSet.contains(fieldName32)) {
+                return resultSet.getObject(fieldName32);
+            }
         }
-
         return null;
     }
 
@@ -90,14 +98,22 @@ public class ResultSetUtils {
             return resultSet.getInt(fieldName2);
         }
 
-        if (isIgnoreCase){
-            String fieldName11 = fieldName1.toLowerCase();
-            if (columnLabelSet.contains(fieldName11)) {
-                return resultSet.getInt(fieldName11);
-            }
-            String fieldName21 = fieldName2.toLowerCase();
+        if (isIgnoreCase) {
+            String fieldName21 = fieldName1.toLowerCase();
             if (columnLabelSet.contains(fieldName21)) {
                 return resultSet.getInt(fieldName21);
+            }
+            String fieldName22 = fieldName2.toLowerCase();
+            if (columnLabelSet.contains(fieldName22)) {
+                return resultSet.getInt(fieldName22);
+            }
+            String fieldName31 = fieldName1.toUpperCase();
+            if (columnLabelSet.contains(fieldName31)) {
+                return resultSet.getInt(fieldName31);
+            }
+            String fieldName32 = fieldName2.toUpperCase();
+            if (columnLabelSet.contains(fieldName32)) {
+                return resultSet.getInt(fieldName32);
             }
         }
         return 0;

@@ -45,7 +45,7 @@
         <dependency>
             <groupId>com.github.linushp</groupId>
             <artifactId>linushp-commons</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
     </dependencies>
 
