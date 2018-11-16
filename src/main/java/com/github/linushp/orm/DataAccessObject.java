@@ -418,6 +418,25 @@ public class DataAccessObject<T> {
     }
 
 
+    /**
+     * 更新自增字段
+     */
+    public UpdateResult increaseNumberByWhereSql(String field_name, String whereSql, Object... whereArgs) throws Exception {
+        String sql = "update " + schemaTableName() + " set `" + field_name + "` = `" + field_name + "` + 1  " + whereSql;
+        return getDataAccess().update(sql, whereArgs);
+    }
+
+    /**
+     * 更新自增字段
+     */
+    public UpdateResult increaseNumberById(String field_name, Object id) throws Exception {
+        return increaseNumberByWhereSql(field_name, "where `id` = ", id);
+    }
+
+
+
+
+
     public UpdateResult insertObject(T entity) throws Exception {
         return insertObject(entity, true, true);
     }
