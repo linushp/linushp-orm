@@ -32,6 +32,7 @@ public class DataAccessObject<T> {
     protected String tableName;
     protected String selectFields = "*";
     protected String schemaName = "";
+    protected String idFieldName = "id"; //可以被重新设置
     protected DataAccess dataAccess;
 
 
@@ -115,7 +116,7 @@ public class DataAccessObject<T> {
 
 
     public T findById(Object id) throws Exception {
-        return findOneByWhere("where `id` = ?", id);
+        return findOneByWhere("where " + getIdFieldNameQuota() + " = ?", id);
     }
 
     public T findOneByWhere(String whereSql, Object... args) throws Exception {
@@ -333,7 +334,7 @@ public class DataAccessObject<T> {
      * @param id bean id
      */
     public UpdateResult deleteById(Object id) throws Exception {
-        return deleteByWhereSql("where `id`=?", id);
+        return deleteByWhereSql("where " + getIdFieldNameQuota() + "=?", id);
     }
 
 
@@ -387,12 +388,12 @@ public class DataAccessObject<T> {
 
     public UpdateResult updateById(T entity, Object id) throws Exception {
         Map<String, Object> newValues = BeanUtils.beanToMap(entity, true, true);
-        return updateByWhereSql(newValues, "where `id` = ? ", id);
+        return updateByWhereSql(newValues, "where " + getIdFieldNameQuota() + " = ? ", id);
     }
 
 
     public UpdateResult updateById(Map<String, Object> newValues, Object id) throws Exception {
-        return updateByWhereSql(newValues, "where `id` = ? ", id);
+        return updateByWhereSql(newValues, "where " + getIdFieldNameQuota() + " = ? ", id);
     }
 
 
@@ -430,11 +431,8 @@ public class DataAccessObject<T> {
      * 更新自增字段
      */
     public UpdateResult increaseNumberById(String field_name, Object id) throws Exception {
-        return increaseNumberByWhereSql(field_name, "where `id` = ", id);
+        return increaseNumberByWhereSql(field_name, "where " + getIdFieldNameQuota() + " = ", id);
     }
-
-
-
 
 
     public UpdateResult insertObject(T entity) throws Exception {
@@ -557,7 +555,7 @@ public class DataAccessObject<T> {
 
 
     public UpdateResult saveOrUpdateById(Map<String, Object> newValues, Object id) throws Exception {
-        return saveOrUpdate(newValues, "where `id` = ?", id);
+        return saveOrUpdate(newValues, "where " + getIdFieldNameQuota() + " = ?", id);
     }
 
 
@@ -654,6 +652,10 @@ public class DataAccessObject<T> {
 
             return false;
         }
+    }
+
+    private String getIdFieldNameQuota() {
+        return " `" + this.idFieldName + "` ";
     }
 
 }
