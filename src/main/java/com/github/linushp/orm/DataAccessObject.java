@@ -267,6 +267,18 @@ public class DataAccessObject<T> {
      * @throws Exception 可能的异常
      */
     public Page<T> findPage(int pageNo, int pageSize, String whereSql, String orderBy, Object... whereArgs) throws Exception {
+        String fromWhere = "from " + schemaTableName() + " " + whereSql ;
+        String selectSql = "select " + selectFields ;
+        String countSql = "select count(0)";
+        return findPageAdvanced(pageNo,pageSize,countSql,selectSql,fromWhere,orderBy,whereArgs);
+    }
+
+
+    /**
+     * 分页查询
+     * fromWhere 里面不能含有order by 和 limit 等语句，因为whereSql不仅作为find的查询条件，也作为count的查询条件
+     */
+    public Page<T> findPageAdvanced(int pageNo, int pageSize, String countSqlPrefix, String selectSqlPrefix, String fromWhere, String orderBy, Object... whereArgs) throws Exception {
 
         if (pageNo < 0) {
             pageNo = 0;
@@ -280,35 +292,30 @@ public class DataAccessObject<T> {
             pageSize = maxPageRowSize;
         }
 
-        if (whereSql == null) {
-            whereSql = "";
-        }
-        if (orderBy == null) {
-            orderBy = "";
-        }
-
         int beginIndex = pageNo * pageSize;
 
-        long totalCount = this.countByWhereSql(whereSql, whereArgs);
+
+        String countSql = countSqlPrefix + " " + fromWhere;
+        Object totalCountObj = this.getDataAccess().queryValue(countSql, whereArgs);
+        Long totalCount = CastBasicTypeUtils.toLong(totalCountObj);
 
         //totalCount 为0的时候可以不查询
         List<T> dataList;
         if (totalCount > 0) {
-            String sqlList = "select " + selectFields + " from " + schemaTableName() + " " + whereSql + " " + orderBy + " limit  ?,? ";// + beginIndex + "," + pageSize;
+
+            String selectSql = selectSqlPrefix + " " + fromWhere + " " + orderBy + "  limit  ?,?  ";
 
             List whereArgsList = CollectionUtils.toObjectList(whereArgs);
             whereArgsList.add(beginIndex);
             whereArgsList.add(pageSize);
 
-            dataList = getDataAccess().query(clazz, sqlList, whereArgsList.toArray());
+            dataList = this.getDataAccess().query(clazz, selectSql, whereArgsList.toArray());
         } else {
             dataList = new ArrayList<>();
         }
-
-
-        Page<T> result = new Page(dataList, totalCount, pageNo, pageSize);
-        return result;
+        return new Page<>(dataList, totalCount, pageNo, pageSize);
     }
+
 
 
     /**
