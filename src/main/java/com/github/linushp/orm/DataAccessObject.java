@@ -245,6 +245,10 @@ public class DataAccessObject<T> {
     }
 
 
+    /**
+     *
+     * whereSql 里面不能含有order by 和 limit 等语句，因为whereSql不仅作为find的查询条件，也作为count的查询条件
+     */
     public Page<T> findPage(int pageNo, int pageSize, String whereSql, String orderBy, List<Object> whereArgs) throws Exception {
         Object[] whereArgArray = whereArgs.toArray(new Object[whereArgs.size()]);
         return findPage(pageNo, pageSize, whereSql, orderBy, whereArgArray);
@@ -253,10 +257,11 @@ public class DataAccessObject<T> {
 
     /**
      * 分页查询
+     * whereSql 里面不能含有order by 和 limit 等语句，因为whereSql不仅作为find的查询条件，也作为count的查询条件
      *
      * @param pageNo    页号从零开始
      * @param pageSize  每夜多少条数据
-     * @param whereSql  条件
+     * @param whereSql  条件，whereSql 里面不能含有order by 和 limit 等语句，因为whereSql不仅作为find的查询条件，也作为count的查询条件
      * @param orderBy   排序条件
      * @param whereArgs 条件参数
      * @return 返回Page对象
