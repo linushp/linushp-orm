@@ -9,4 +9,9 @@ import java.lang.annotation.*;
 @Documented
 public @interface EntityInfo {
     String table();
+    boolean isUnderlineKey() default true;
+    boolean isIgnoreNull() default true;
+    String idFieldName() default  "id";
+    String schemaName() default "";
+    String selectFields() default "*";
 }

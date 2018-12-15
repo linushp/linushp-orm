@@ -39,6 +39,12 @@ public class DataAccessObject<T> {
     protected boolean isIgnoreNull = true;
 
 
+    public DataAccessObject(Class<T> clazz) {
+        this.clazz = clazz;
+        this.tableName = clazz.getSimpleName().toLowerCase();
+    }
+
+
     public DataAccessObject(Class<T> clazz, String tableName) {
         this.clazz = clazz;
         this.tableName = tableName;
@@ -190,7 +196,7 @@ public class DataAccessObject<T> {
     }
 
     public List<T> findByExample(T example) throws Exception {
-        Map<String, Object> exampleMap = beanToMap(example);
+        Map<String, Object> exampleMap = entityToMap(example);
         return findByExample(exampleMap);
     }
 
@@ -209,12 +215,12 @@ public class DataAccessObject<T> {
     }
 
     public Page<T> findPageByExample(int pageNo, int pageSize, T example) throws Exception {
-        Map<String, Object> exampleMap = beanToMap(example);
+        Map<String, Object> exampleMap = entityToMap(example);
         return findPageByExample(pageNo, pageSize, exampleMap, "");
     }
 
     public Page<T> findPageByExample(int pageNo, int pageSize, T example, String orderBy) throws Exception {
-        Map<String, Object> exampleMap = beanToMap(example);
+        Map<String, Object> exampleMap = entityToMap(example);
         return findPageByExample(pageNo, pageSize, exampleMap, orderBy);
     }
 
@@ -307,7 +313,7 @@ public class DataAccessObject<T> {
      * @return
      */
     public boolean exists(T entity) throws Exception {
-        Map<String, Object> example = beanToMap(entity);
+        Map<String, Object> example = entityToMap(entity);
         return exists(example);
     }
 
@@ -325,7 +331,7 @@ public class DataAccessObject<T> {
 
 
     public Long countByExample(T entity) throws Exception {
-        Map<String, Object> example = beanToMap(entity);
+        Map<String, Object> example = entityToMap(entity);
         return countByExample(example);
     }
 
@@ -382,7 +388,7 @@ public class DataAccessObject<T> {
      * @return 操作结果
      */
     public UpdateResult deleteByExample(T entity) throws Exception {
-        Map<String, Object> example = beanToMap(entity);
+        Map<String, Object> example = entityToMap(entity);
         return deleteByExample(example);
     }
 
@@ -428,12 +434,12 @@ public class DataAccessObject<T> {
     }
 
     public UpdateResult updateById(T entity, Object id) throws Exception {
-        Map<String, Object> newValues = beanToMap(entity);
+        Map<String, Object> newValues = entityToMap(entity);
         return updateByWhereSql(newValues, "where " + getIdFieldNameQuota() + " = ? ", id);
     }
 
     public UpdateResult updateByField(T entity, String fieldName, Object value) throws Exception {
-        Map<String, Object> newValues = beanToMap(entity);
+        Map<String, Object> newValues = entityToMap(entity);
         return this.updateByWhereSql(newValues, toFieldWhereSql(fieldName), value);
     }
 
@@ -447,7 +453,7 @@ public class DataAccessObject<T> {
 
 
     public UpdateResult updateByWhereSql(T entity, String whereSql, Object... whereArgs) throws Exception {
-        Map<String, Object> newValues = beanToMap(entity);
+        Map<String, Object> newValues = entityToMap(entity);
         return updateByWhereSql(newValues, whereSql, whereArgs);
     }
 
@@ -491,7 +497,7 @@ public class DataAccessObject<T> {
 
 
     public UpdateResult insertObject(T entity) throws Exception {
-        Map<String, Object> map = beanToMap(entity);
+        Map<String, Object> map = entityToMap(entity);
         return insertObject(map);
     }
 
@@ -580,7 +586,7 @@ public class DataAccessObject<T> {
 
         List<Map<String, Object>> objectList = new ArrayList<>();
         for (T entity : entityList) {
-            Map<String, Object> map = beanToMap(entity);
+            Map<String, Object> map = entityToMap(entity);
             objectList.add(map);
         }
 
@@ -634,7 +640,7 @@ public class DataAccessObject<T> {
     }
 
     public UpdateResult saveOrUpdateById(T entity, Object id) throws Exception {
-        Map<String, Object> newValues = beanToMap(entity);
+        Map<String, Object> newValues = entityToMap(entity);
         return saveOrUpdate(newValues, "where " + getIdFieldNameQuota() + " = ?", id);
     }
 
@@ -645,7 +651,7 @@ public class DataAccessObject<T> {
 
 
     public UpdateResult saveOrUpdate(T entity, String whereSql, Object... whereArgs) throws Exception {
-        Map<String, Object> newValues = beanToMap(entity);
+        Map<String, Object> newValues = entityToMap(entity);
         return saveOrUpdate(newValues, whereSql, whereArgs);
     }
 
@@ -683,7 +689,7 @@ public class DataAccessObject<T> {
     }
 
 
-    private Map<String, Object> beanToMap(T entity) throws Exception {
+    private Map<String, Object> entityToMap(T entity) throws Exception {
         return BeanUtils.beanToMap(entity, this.isUnderlineKey, this.isIgnoreNull);
     }
 

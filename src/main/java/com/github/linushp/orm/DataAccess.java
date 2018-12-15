@@ -254,7 +254,7 @@ public class DataAccess {
 
     /**
      * 传入 SQL 语句， 返回 SQL 语句查询到的记录对应的 Map对象的集合
-     *
+     * 不使用预编译SQL
      * @param sql
      * @return
      * @throws Exception

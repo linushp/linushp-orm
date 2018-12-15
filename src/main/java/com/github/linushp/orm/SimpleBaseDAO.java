@@ -9,16 +9,25 @@ import javax.sql.DataSource;
 public abstract class SimpleBaseDAO<T> extends DataAccessObject<T> {
 
     public SimpleBaseDAO(Class<T> clazz) {
-        super(clazz, getTableNameByEntityClass(clazz));
+        super(clazz);
         this.dataAccess = new DataAccess(new DynamicConnectionFactory(this));
+        this.settingDaoByEntityInfoAnnotation(clazz);
     }
+
+
+    protected void settingDaoByEntityInfoAnnotation(Class<T> clazz) {
+        EntityInfo entityInfo = clazz.getAnnotation(EntityInfo.class);
+        if (entityInfo != null) {
+            this.tableName = entityInfo.table();
+            this.selectFields = entityInfo.selectFields();
+            this.schemaName = entityInfo.schemaName();
+            this.idFieldName = entityInfo.idFieldName();
+            this.isIgnoreNull = entityInfo.isIgnoreNull();
+            this.isUnderlineKey = entityInfo.isUnderlineKey();
+        }
+    }
+
 
     protected abstract DataSource getDataSourceByName(String dataSourceName);
-
-    private static String getTableNameByEntityClass(Class clazz) {
-        EntityInfo entityInfo = (EntityInfo) clazz.getAnnotation(EntityInfo.class);
-        String tableName = entityInfo.table();
-        return tableName;
-    }
 
 }
