@@ -3,9 +3,7 @@ package com.github.linushp.orm;
 import com.github.linushp.commons.*;
 import com.github.linushp.commons.ifs.CharFilter;
 import com.github.linushp.commons.model.Page;
-import com.github.linushp.orm.model.DataModifyListener;
-import com.github.linushp.orm.model.SingleConnectionFactory;
-import com.github.linushp.orm.model.UpdateResult;
+import com.github.linushp.orm.model.*;
 import com.github.linushp.orm.utils.ResultSetParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +30,10 @@ public class DataAccessObject<T> {
     protected String tableName;
     protected String selectFields = "*";
     protected String schemaName = "";
-    protected String idFieldName = "id"; //可以被重新设置
+    protected String idFieldName = "id"; //可以被重新设置,对应的是数据库中的字段名
     protected DataAccess dataAccess;
 
-    protected boolean isUnderlineKey = true;
+    protected boolean isUnderlineKey = true; //只有当Entity的字段名和数据库表的字段名大小写不一样时，启用才有意义。
     protected boolean isIgnoreNull = true;
 
 
@@ -128,7 +126,6 @@ public class DataAccessObject<T> {
         return findByWhere("");
     }
 
-
     public T findById(Object id) throws Exception {
         return findOneByWhere("where " + getIdFieldNameQuota() + " = ?", id);
     }
@@ -148,7 +145,7 @@ public class DataAccessObject<T> {
     }
 
     public List<T> findByIdList(List idList) throws Exception {
-        return findByIdList("id", idList, new DefaultIdCharFilter());
+        return findByIdList(this.idFieldName, idList, new DefaultIdCharFilter());
     }
 
     public List<T> findByIdList(String idFieldName, List idList) throws Exception {
@@ -156,7 +153,7 @@ public class DataAccessObject<T> {
     }
 
     public List<T> findByIdList(List idList, CharFilter idCharFilter) throws Exception {
-        return findByIdList("id", idList, idCharFilter);
+        return findByIdList(this.idFieldName, idList, idCharFilter);
     }
 
     public List<T> findByIdList(String idFieldName, List idList, CharFilter idCharFilter) throws Exception {
@@ -185,7 +182,7 @@ public class DataAccessObject<T> {
         };
 
         String idString = StringUtils.join(idList, ",", stringParser);
-        String sql = "select " + selectFields + " from " + schemaTableName() + " where `" + idFieldName + "` in (" + idString + ")";
+        String sql = "select " + selectFields + " from " + schemaTableName() + " where `" + toFieldDbName(idFieldName) + "` in (" + idString + ")";
         List<Map<String, ?>> mapList = getDataAccess().queryTemp(sql);
         return BeanUtils.mapListToBeanList(clazz, mapList);
     }
@@ -194,6 +191,11 @@ public class DataAccessObject<T> {
     public List<T> findByWhere(WhereSqlAndArgs whereSqlAndArgs) throws Exception {
         return findByWhere(whereSqlAndArgs.whereSql, whereSqlAndArgs.whereArgs);
     }
+
+    public List<T> findByWhere(WhereSqlBuilder whereSqlBuilder) throws Exception {
+        return findByWhere(whereSqlBuilder.toWhereSqlAndArgs());
+    }
+
 
     public List<T> findByExample(T example) throws Exception {
         Map<String, Object> exampleMap = entityToMap(example);
@@ -229,6 +231,14 @@ public class DataAccessObject<T> {
         return findPage(pageNo, pageSize, mm.whereSql, orderBy, mm.whereArgs);
     }
 
+    public Page<T> findPageByWhere(int pageNo, int pageSize, WhereSqlBuilder whereSqlBuilder, String orderBy) throws Exception {
+        return findPageByWhere(pageNo, pageSize, whereSqlBuilder.toWhereSqlAndArgs(), orderBy);
+    }
+
+    public Page<T> findPageByWhere(int pageNo, int pageSize, WhereSqlAndArgs whereSqlAndArgs, String orderBy) throws Exception {
+        return findPage(pageNo, pageSize, whereSqlAndArgs.whereSql, orderBy, whereSqlAndArgs.whereArgs);
+    }
+
 
     public Page<T> findPage(int pageNo, int pageSize) throws Exception {
         return findPage(pageNo, pageSize, "", "");
@@ -239,6 +249,7 @@ public class DataAccessObject<T> {
         Object[] whereArgArray = whereArgs.toArray(new Object[whereArgs.size()]);
         return findPage(pageNo, pageSize, whereSql, orderBy, whereArgArray);
     }
+
 
     /**
      * 分页查询
@@ -342,6 +353,24 @@ public class DataAccessObject<T> {
     }
 
 
+
+    /**
+     * 统计数量多少
+     */
+    public Long countByWhere(WhereSqlBuilder whereSqlBuilder) throws Exception {
+        WhereSqlAndArgs whereSqlAndArgs = whereSqlBuilder.toWhereSqlAndArgs();
+        return countByWhereSql(whereSqlAndArgs.whereSql,whereSqlAndArgs.whereArgs);
+    }
+
+
+    /**
+     * 统计数量多少
+     */
+    public Long countByWhere(WhereSqlAndArgs whereSqlAndArgs) throws Exception {
+        return countByWhereSql(whereSqlAndArgs.whereSql,whereSqlAndArgs.whereArgs);
+    }
+
+
     /**
      * 统计数量多少
      *
@@ -371,13 +400,14 @@ public class DataAccessObject<T> {
         return this.countByWhereSql(toFieldWhereSql(fieldName), value);
     }
 
+
     /**
      * 根据Id删除
      *
      * @param id bean id
      */
     public UpdateResult deleteById(Object id) throws Exception {
-        return deleteByWhereSql("where " + getIdFieldNameQuota() + "=?", id);
+        return deleteByWhereSql("where " + getIdFieldNameQuota() + " =?", id);
     }
 
 
@@ -395,9 +425,6 @@ public class DataAccessObject<T> {
 
     /**
      * 根据条件删除
-     *
-     * @param example 查询条件
-     * @return 操作结果
      */
     public UpdateResult deleteByExample(Map<String, Object> example) throws Exception {
         WhereSqlAndArgs mm = toWhereSqlAndArgs(example);
@@ -433,6 +460,16 @@ public class DataAccessObject<T> {
         return this.deleteByWhereSql(toFieldWhereSql(fieldName), value);
     }
 
+
+    public UpdateResult update(T entity) throws Exception {
+        return updateById(entity);
+    }
+
+    public UpdateResult updateById(T entity) throws Exception {
+        Map<String, Object> newValues = entityToMap(entity);
+        return updateById(newValues);
+    }
+
     public UpdateResult updateById(T entity, Object id) throws Exception {
         Map<String, Object> newValues = entityToMap(entity);
         return updateByWhereSql(newValues, "where " + getIdFieldNameQuota() + " = ? ", id);
@@ -445,6 +482,14 @@ public class DataAccessObject<T> {
 
     public UpdateResult updateByField(Map<String, Object> newValues, String fieldName, Object value) throws Exception {
         return this.updateByWhereSql(newValues, toFieldWhereSql(fieldName), value);
+    }
+
+    public UpdateResult updateById(Map<String, Object> newValues) throws Exception {
+        Object id = newValues.get(this.getIdFieldDbName());
+        if (id == null) {
+            throw new NullPointerException("自动获取ID字段失败，ID字段不能为null");
+        }
+        return updateByWhereSql(newValues, "where " + getIdFieldNameQuota() + " = ? ", id);
     }
 
     public UpdateResult updateById(Map<String, Object> newValues, Object id) throws Exception {
@@ -639,6 +684,29 @@ public class DataAccessObject<T> {
         return new UpdateResult("params is empty");
     }
 
+
+    /**
+     * 根据ID字段是否存在，决定插入还是修改
+     */
+    public UpdateResult saveOrUpdateById(T entity) throws Exception {
+        Map<String, Object> newValues = entityToMap(entity);
+        return saveOrUpdateById(newValues);
+    }
+
+
+    /**
+     * 根据ID字段是否存在，决定插入还是修改
+     */
+    public UpdateResult saveOrUpdateById(Map<String, Object> newValues) throws Exception {
+        Object id = newValues.get(this.getIdFieldDbName());
+        if (id == null) {
+            return insertObject(newValues);
+        } else {
+            return updateById(newValues, id);
+        }
+    }
+
+
     public UpdateResult saveOrUpdateById(T entity, Object id) throws Exception {
         Map<String, Object> newValues = entityToMap(entity);
         return saveOrUpdate(newValues, "where " + getIdFieldNameQuota() + " = ?", id);
@@ -685,7 +753,7 @@ public class DataAccessObject<T> {
         if (fieldName.isEmpty()) {
             throw new Exception("fieldName can not be empty");
         }
-        return "where `" + fieldName + "` = ?";
+        return "where `" + toFieldDbName(fieldName) + "` = ?";
     }
 
 
@@ -693,15 +761,6 @@ public class DataAccessObject<T> {
         return BeanUtils.beanToMap(entity, this.isUnderlineKey, this.isIgnoreNull);
     }
 
-    protected static class WhereSqlAndArgs {
-        public String whereSql;
-        public Object[] whereArgs;
-
-        public WhereSqlAndArgs(String whereSql, List<Object> whereArgs) {
-            this.whereSql = whereSql;
-            this.whereArgs = whereArgs.toArray();
-        }
-    }
 
     private static class DefaultIdCharFilter implements CharFilter {
 
@@ -736,8 +795,22 @@ public class DataAccessObject<T> {
         }
     }
 
+
+    private String getIdFieldDbName() {
+        return toFieldDbName(this.idFieldName);
+    }
+
+
+    private String toFieldDbName(String fieldName) {
+        if (this.isUnderlineKey) {
+            return StringUtils.camel2Underline(fieldName, true);
+        }
+        return fieldName;
+    }
+
+
     private String getIdFieldNameQuota() {
-        return " `" + this.idFieldName + "` ";
+        return " `" + this.getIdFieldDbName() + "` ";
     }
 
 }
