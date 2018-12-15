@@ -35,6 +35,9 @@ public class DataAccessObject<T> {
     protected String idFieldName = "id"; //可以被重新设置
     protected DataAccess dataAccess;
 
+    protected boolean isUnderlineKey = true;
+    protected boolean isIgnoreNull = true;
+
 
     public DataAccessObject(Class<T> clazz, String tableName) {
         this.clazz = clazz;
@@ -115,6 +118,11 @@ public class DataAccessObject<T> {
     }
 
 
+    public List<T> findAll() throws Exception {
+        return findByWhere("");
+    }
+
+
     public T findById(Object id) throws Exception {
         return findOneByWhere("where " + getIdFieldNameQuota() + " = ?", id);
     }
@@ -125,10 +133,13 @@ public class DataAccessObject<T> {
         return CollectionUtils.getFirstElement(list);
     }
 
-    public List<T> findAll() throws Exception {
-        return findByWhere("");
+    public T findOneByField(String fieldName, Object value) throws Exception {
+        return this.findOneByWhere(toFieldWhereSql(fieldName), value);
     }
 
+    public List<T> findListByField(String fieldName, Object value) throws Exception {
+        return this.findByWhere(toFieldWhereSql(fieldName), value);
+    }
 
     public List<T> findByIdList(List idList) throws Exception {
         return findByIdList("id", idList, new DefaultIdCharFilter());
@@ -179,7 +190,7 @@ public class DataAccessObject<T> {
     }
 
     public List<T> findByExample(T example) throws Exception {
-        Map<String, Object> exampleMap = BeanUtils.beanToMap(example, true, true);
+        Map<String, Object> exampleMap = beanToMap(example);
         return findByExample(exampleMap);
     }
 
@@ -198,12 +209,12 @@ public class DataAccessObject<T> {
     }
 
     public Page<T> findPageByExample(int pageNo, int pageSize, T example) throws Exception {
-        Map<String, Object> exampleMap = BeanUtils.beanToMap(example, true, true);
+        Map<String, Object> exampleMap = beanToMap(example);
         return findPageByExample(pageNo, pageSize, exampleMap, "");
     }
 
     public Page<T> findPageByExample(int pageNo, int pageSize, T example, String orderBy) throws Exception {
-        Map<String, Object> exampleMap = BeanUtils.beanToMap(example, true, true);
+        Map<String, Object> exampleMap = beanToMap(example);
         return findPageByExample(pageNo, pageSize, exampleMap, orderBy);
     }
 
@@ -262,8 +273,13 @@ public class DataAccessObject<T> {
         //totalCount 为0的时候可以不查询
         List<T> dataList;
         if (totalCount > 0) {
-            String sqlList = "select " + selectFields + " from " + schemaTableName() + " " + whereSql + " " + orderBy + " limit  " + beginIndex + "," + pageSize;
-            dataList = getDataAccess().query(clazz, sqlList, whereArgs);
+            String sqlList = "select " + selectFields + " from " + schemaTableName() + " " + whereSql + " " + orderBy + " limit  ?,? ";// + beginIndex + "," + pageSize;
+
+            List whereArgsList = CollectionUtils.toObjectList(whereArgs);
+            whereArgsList.add(beginIndex);
+            whereArgsList.add(pageSize);
+
+            dataList = getDataAccess().query(clazz, sqlList, whereArgsList.toArray());
         } else {
             dataList = new ArrayList<>();
         }
@@ -287,12 +303,30 @@ public class DataAccessObject<T> {
     /**
      * 判断对象是否存在
      *
+     * @param entity 查询条件
+     * @return
+     */
+    public boolean exists(T entity) throws Exception {
+        Map<String, Object> example = beanToMap(entity);
+        return exists(example);
+    }
+
+
+    /**
+     * 判断对象是否存在
+     *
      * @param example 查询条件
      * @return
      */
     public boolean exists(Map<String, Object> example) throws Exception {
         Long x = countByExample(example);
         return (x != null && x > 0);
+    }
+
+
+    public Long countByExample(T entity) throws Exception {
+        Map<String, Object> example = beanToMap(entity);
+        return countByExample(example);
     }
 
 
@@ -327,6 +361,9 @@ public class DataAccessObject<T> {
         return countByWhereSql(whereSql, whereArgArray);
     }
 
+    public Long countByField(String fieldName, Object value) throws Exception {
+        return this.countByWhereSql(toFieldWhereSql(fieldName), value);
+    }
 
     /**
      * 根据Id删除
@@ -345,7 +382,7 @@ public class DataAccessObject<T> {
      * @return 操作结果
      */
     public UpdateResult deleteByExample(T entity) throws Exception {
-        Map<String, Object> example = BeanUtils.beanToMap(entity, true, true);
+        Map<String, Object> example = beanToMap(entity);
         return deleteByExample(example);
     }
 
@@ -386,14 +423,32 @@ public class DataAccessObject<T> {
     }
 
 
+    public UpdateResult deleteByField(String fieldName, Object value) throws Exception {
+        return this.deleteByWhereSql(toFieldWhereSql(fieldName), value);
+    }
+
     public UpdateResult updateById(T entity, Object id) throws Exception {
-        Map<String, Object> newValues = BeanUtils.beanToMap(entity, true, true);
+        Map<String, Object> newValues = beanToMap(entity);
+        return updateByWhereSql(newValues, "where " + getIdFieldNameQuota() + " = ? ", id);
+    }
+
+    public UpdateResult updateByField(T entity, String fieldName, Object value) throws Exception {
+        Map<String, Object> newValues = beanToMap(entity);
+        return this.updateByWhereSql(newValues, toFieldWhereSql(fieldName), value);
+    }
+
+    public UpdateResult updateByField(Map<String, Object> newValues, String fieldName, Object value) throws Exception {
+        return this.updateByWhereSql(newValues, toFieldWhereSql(fieldName), value);
+    }
+
+    public UpdateResult updateById(Map<String, Object> newValues, Object id) throws Exception {
         return updateByWhereSql(newValues, "where " + getIdFieldNameQuota() + " = ? ", id);
     }
 
 
-    public UpdateResult updateById(Map<String, Object> newValues, Object id) throws Exception {
-        return updateByWhereSql(newValues, "where " + getIdFieldNameQuota() + " = ? ", id);
+    public UpdateResult updateByWhereSql(T entity, String whereSql, Object... whereArgs) throws Exception {
+        Map<String, Object> newValues = beanToMap(entity);
+        return updateByWhereSql(newValues, whereSql, whereArgs);
     }
 
 
@@ -436,7 +491,8 @@ public class DataAccessObject<T> {
 
 
     public UpdateResult insertObject(T entity) throws Exception {
-        return insertObject(entity, true, true);
+        Map<String, Object> map = beanToMap(entity);
+        return insertObject(map);
     }
 
 
@@ -513,6 +569,30 @@ public class DataAccessObject<T> {
      * 优点：高效
      * 缺点：中间出现一个异常会导致整批插入失败。
      *
+     * @param entityList 需要插入大对象
+     * @return Update Result
+     */
+    public UpdateResult batchInsertEntityUsingLargeSQL(List<T> entityList) throws Exception {
+
+        if (CollectionUtils.isEmpty(entityList)) {
+            return new UpdateResult("params is empty");
+        }
+
+        List<Map<String, Object>> objectList = new ArrayList<>();
+        for (T entity : entityList) {
+            Map<String, Object> map = beanToMap(entity);
+            objectList.add(map);
+        }
+
+        return batchInsertUsingLargeSQL(objectList);
+    }
+
+
+    /**
+     * 批量插入，拼接成一个大SQL。
+     * 优点：高效
+     * 缺点：中间出现一个异常会导致整批插入失败。
+     *
      * @param objectList 需要插入大对象
      * @return Update Result
      */
@@ -553,9 +633,20 @@ public class DataAccessObject<T> {
         return new UpdateResult("params is empty");
     }
 
+    public UpdateResult saveOrUpdateById(T entity, Object id) throws Exception {
+        Map<String, Object> newValues = beanToMap(entity);
+        return saveOrUpdate(newValues, "where " + getIdFieldNameQuota() + " = ?", id);
+    }
+
 
     public UpdateResult saveOrUpdateById(Map<String, Object> newValues, Object id) throws Exception {
         return saveOrUpdate(newValues, "where " + getIdFieldNameQuota() + " = ?", id);
+    }
+
+
+    public UpdateResult saveOrUpdate(T entity, String whereSql, Object... whereArgs) throws Exception {
+        Map<String, Object> newValues = beanToMap(entity);
+        return saveOrUpdate(newValues, whereSql, whereArgs);
     }
 
 
@@ -583,32 +674,17 @@ public class DataAccessObject<T> {
     }
 
 
-    public T findOneByField(String fieldName, Object value) throws Exception {
-        return this.findOneByWhere(toFieldWhereSql(fieldName), value);
-    }
-
-    public List<T> findListByField(String fieldName, Object value) throws Exception {
-        return this.findByWhere(toFieldWhereSql(fieldName), value);
-    }
-
-    public UpdateResult deleteByField(String fieldName, Object value) throws Exception {
-        return this.deleteByWhereSql(toFieldWhereSql(fieldName), value);
-    }
-
-    public UpdateResult updateByField(Map<String, Object> newValues, String fieldName, Object value) throws Exception {
-        return this.updateByWhereSql(newValues, toFieldWhereSql(fieldName), value);
-    }
-
-    public Long countByField(String fieldName, Object value) throws Exception {
-        return this.countByWhereSql(toFieldWhereSql(fieldName), value);
-    }
-
     private String toFieldWhereSql(String fieldName) throws Exception {
         fieldName = fieldName.trim();
         if (fieldName.isEmpty()) {
             throw new Exception("fieldName can not be empty");
         }
         return "where `" + fieldName + "` = ?";
+    }
+
+
+    private Map<String, Object> beanToMap(T entity) throws Exception {
+        return BeanUtils.beanToMap(entity, this.isUnderlineKey, this.isIgnoreNull);
     }
 
     protected static class WhereSqlAndArgs {
