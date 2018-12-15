@@ -8,6 +8,7 @@ import com.github.linushp.orm.utils.ResultSetParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.net.ConnectException;
 import java.sql.Connection;
 import java.util.*;
@@ -126,7 +127,7 @@ public class DataAccessObject<T> {
         return findByWhere("");
     }
 
-    public T findById(Object id) throws Exception {
+    public T findById(Serializable id) throws Exception {
         return findOneByWhere("where " + getIdFieldNameQuota() + " = ?", id);
     }
 
@@ -187,7 +188,6 @@ public class DataAccessObject<T> {
         return BeanUtils.mapListToBeanList(clazz, mapList);
     }
 
-
     public List<T> findByWhere(WhereSqlAndArgs whereSqlAndArgs) throws Exception {
         return findByWhere(whereSqlAndArgs.whereSql, whereSqlAndArgs.whereArgs);
     }
@@ -246,7 +246,6 @@ public class DataAccessObject<T> {
 
 
     /**
-     *
      * whereSql 里面不能含有order by 和 limit 等语句，因为whereSql不仅作为find的查询条件，也作为count的查询条件
      */
     public Page<T> findPage(int pageNo, int pageSize, String whereSql, String orderBy, List<Object> whereArgs) throws Exception {
@@ -358,13 +357,12 @@ public class DataAccessObject<T> {
     }
 
 
-
     /**
      * 统计数量多少
      */
     public Long countByWhere(WhereSqlBuilder whereSqlBuilder) throws Exception {
         WhereSqlAndArgs whereSqlAndArgs = whereSqlBuilder.toWhereSqlAndArgs();
-        return countByWhereSql(whereSqlAndArgs.whereSql,whereSqlAndArgs.whereArgs);
+        return countByWhereSql(whereSqlAndArgs.whereSql, whereSqlAndArgs.whereArgs);
     }
 
 
@@ -372,7 +370,7 @@ public class DataAccessObject<T> {
      * 统计数量多少
      */
     public Long countByWhere(WhereSqlAndArgs whereSqlAndArgs) throws Exception {
-        return countByWhereSql(whereSqlAndArgs.whereSql,whereSqlAndArgs.whereArgs);
+        return countByWhereSql(whereSqlAndArgs.whereSql, whereSqlAndArgs.whereArgs);
     }
 
 
@@ -411,7 +409,7 @@ public class DataAccessObject<T> {
      *
      * @param id bean id
      */
-    public UpdateResult deleteById(Object id) throws Exception {
+    public UpdateResult deleteById(Serializable id) throws Exception {
         return deleteByWhereSql("where " + getIdFieldNameQuota() + " =?", id);
     }
 
@@ -475,7 +473,7 @@ public class DataAccessObject<T> {
         return updateById(newValues);
     }
 
-    public UpdateResult updateById(T entity, Object id) throws Exception {
+    public UpdateResult updateById(T entity, Serializable id) throws Exception {
         Map<String, Object> newValues = entityToMap(entity);
         return updateByWhereSql(newValues, "where " + getIdFieldNameQuota() + " = ? ", id);
     }
@@ -497,7 +495,7 @@ public class DataAccessObject<T> {
         return updateByWhereSql(newValues, "where " + getIdFieldNameQuota() + " = ? ", id);
     }
 
-    public UpdateResult updateById(Map<String, Object> newValues, Object id) throws Exception {
+    public UpdateResult updateById(Map<String, Object> newValues, Serializable id) throws Exception {
         return updateByWhereSql(newValues, "where " + getIdFieldNameQuota() + " = ? ", id);
     }
 
@@ -531,18 +529,28 @@ public class DataAccessObject<T> {
 
 
     /**
-     * 更新自增字段
+     * 更新自增字段 + 1
      */
-    public UpdateResult increaseNumberByWhereSql(String field_name, String whereSql, Object... whereArgs) throws Exception {
-        String sql = "update " + schemaTableName() + " set `" + field_name + "` = `" + field_name + "` + 1  " + whereSql;
-        return getDataAccess().update(sql, whereArgs);
+    public UpdateResult increaseById(String field_name, Serializable id) throws Exception {
+        return incOrDecNumberByWhereSql(field_name, 1, "where " + getIdFieldNameQuota() + " = ", id);
     }
+
+
+    /**
+     * 更新自增字段 -1
+     */
+    public UpdateResult decreaseById(String field_name, Serializable id) throws Exception {
+        return incOrDecNumberByWhereSql(field_name, -1, "where " + getIdFieldNameQuota() + " = ", id);
+    }
+
 
     /**
      * 更新自增字段
      */
-    public UpdateResult increaseNumberById(String field_name, Object id) throws Exception {
-        return increaseNumberByWhereSql(field_name, "where " + getIdFieldNameQuota() + " = ", id);
+    public UpdateResult incOrDecNumberByWhereSql(String field_name, int num, String whereSql, Object... whereArgs) throws Exception {
+        field_name = toFieldDbName(field_name);
+        String sql = "update " + schemaTableName() + " set `" + field_name + "` = `" + field_name + "`  " + num + "  " + whereSql;
+        return getDataAccess().update(sql, whereArgs);
     }
 
 
@@ -707,18 +715,18 @@ public class DataAccessObject<T> {
         if (id == null) {
             return insertObject(newValues);
         } else {
-            return updateById(newValues, id);
+            return updateById(newValues, (Serializable) id);
         }
     }
 
 
-    public UpdateResult saveOrUpdateById(T entity, Object id) throws Exception {
+    public UpdateResult saveOrUpdateById(T entity, Serializable id) throws Exception {
         Map<String, Object> newValues = entityToMap(entity);
         return saveOrUpdate(newValues, "where " + getIdFieldNameQuota() + " = ?", id);
     }
 
 
-    public UpdateResult saveOrUpdateById(Map<String, Object> newValues, Object id) throws Exception {
+    public UpdateResult saveOrUpdateById(Map<String, Object> newValues, Serializable id) throws Exception {
         return saveOrUpdate(newValues, "where " + getIdFieldNameQuota() + " = ?", id);
     }
 
