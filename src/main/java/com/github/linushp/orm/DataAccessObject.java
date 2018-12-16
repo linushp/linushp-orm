@@ -316,27 +316,27 @@ public class DataAccessObject<T> {
     }
 
 
-    public ScrollPage<T> findScrollPage(Serializable nextKey, String orderByFieldName, int limit, boolean isDesc) throws Exception {
+    public ScrollPage<T> findScrollPage(String nextKeyFieldName, Serializable nextKey, int limit, boolean isDesc) throws Exception {
         WhereSqlBuilder whereSqlBuilder = new WhereSqlBuilder();
-        return findScrollPage(whereSqlBuilder, orderByFieldName, nextKey, limit, isDesc);
+        return findScrollPage(whereSqlBuilder, nextKeyFieldName, nextKey, limit, isDesc);
     }
 
-    public ScrollPage<T> findScrollPage(T example, String orderByFieldName, Serializable nextKey, int limit, boolean isDesc) throws Exception {
+    public ScrollPage<T> findScrollPage(T example, String nextKeyFieldName, Serializable nextKey, int limit, boolean isDesc) throws Exception {
         Map<String, Object> map = entityToMap(example);
-        return findScrollPage(map, orderByFieldName, nextKey, limit, isDesc);
+        return findScrollPage(map, nextKeyFieldName, nextKey, limit, isDesc);
     }
 
 
-    public ScrollPage<T> findScrollPage(Map<String, Object> example, String orderByFieldName, Serializable nextKey, int limit, boolean isDesc) throws Exception {
+    public ScrollPage<T> findScrollPage(Map<String, Object> example, String nextKeyFieldName, Serializable nextKey, int limit, boolean isDesc) throws Exception {
         WhereSqlAndArgs whereSqlAndArgs = toWhereSqlAndArgs(example);
         WhereSqlBuilder whereSqlBuilder = new WhereSqlBuilder(whereSqlAndArgs);
-        return findScrollPage(whereSqlBuilder, orderByFieldName, nextKey, limit, isDesc);
+        return findScrollPage(whereSqlBuilder, nextKeyFieldName, nextKey, limit, isDesc);
     }
 
 
-    public ScrollPage<T> findScrollPage(WhereSqlBuilder whereSqlBuilder, String orderByFieldName, Serializable nextKey, int limit, boolean isDesc) throws Exception {
+    public ScrollPage<T> findScrollPage(WhereSqlBuilder whereSqlBuilder, String nextKeyFieldName, Serializable nextKey, int limit, boolean isDesc) throws Exception {
 
-        String orderByFieldDbName = toFieldDbName(orderByFieldName);
+        String orderByFieldDbName = toFieldDbName(nextKeyFieldName);
 
         if (isDesc) {
             if (nextKey != null) {
@@ -358,7 +358,7 @@ public class DataAccessObject<T> {
         if (hasMore) {
             Object newNexObj = dataList.get(limit);
             ReflectObject reflectObject = new ReflectObject(newNexObj);
-            Object createdValue = reflectObject.getFieldValueLoose(orderByFieldName);
+            Object createdValue = reflectObject.getFieldValueLoose(nextKeyFieldName);
             newNextKey = CastBasicTypeUtils.toLong(createdValue);
             dataList = dataList.subList(0, limit);
         }
