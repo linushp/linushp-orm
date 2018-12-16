@@ -9,6 +9,15 @@ public class WhereSqlBuilder {
     private StringBuilder whereSql = new StringBuilder(" where 1=1 ");
     private List<Object> whereSqlArgs = new ArrayList<>();
 
+    public WhereSqlBuilder() {
+
+    }
+
+    public WhereSqlBuilder(WhereSqlAndArgs whereSqlAndArgs) {
+        this.whereSql = new StringBuilder(whereSqlAndArgs.whereSql + " ");
+        this.whereSqlArgs = whereSqlAndArgs.whereArgsList;
+    }
+
 
     public WhereSqlBuilder append(String sql, Object... args) {
         whereSql.append(" ");

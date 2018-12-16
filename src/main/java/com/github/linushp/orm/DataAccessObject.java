@@ -316,39 +316,53 @@ public class DataAccessObject<T> {
     }
 
 
-    public ScrollPage<T> findScrollPageOrderByCreated(Serializable nextKey, int limit, boolean isDesc) throws Exception {
+    public ScrollPage<T> findScrollPage(Serializable nextKey, String orderByFieldName, int limit, boolean isDesc) throws Exception {
         WhereSqlBuilder whereSqlBuilder = new WhereSqlBuilder();
-        return findScrollPageOrderByCreated(whereSqlBuilder, nextKey, limit, isDesc);
+        return findScrollPage(whereSqlBuilder, orderByFieldName, nextKey, limit, isDesc);
+    }
+
+    public ScrollPage<T> findScrollPage(T example, String orderByFieldName, Serializable nextKey, int limit, boolean isDesc) throws Exception {
+        Map<String, Object> map = entityToMap(example);
+        return findScrollPage(map, orderByFieldName, nextKey, limit, isDesc);
     }
 
 
-    public ScrollPage<T> findScrollPageOrderByCreated(WhereSqlBuilder whereSqlBuilder, Serializable nextKey, int limit, boolean isDesc) throws Exception {
+    public ScrollPage<T> findScrollPage(Map<String, Object> example, String orderByFieldName, Serializable nextKey, int limit, boolean isDesc) throws Exception {
+        WhereSqlAndArgs whereSqlAndArgs = toWhereSqlAndArgs(example);
+        WhereSqlBuilder whereSqlBuilder = new WhereSqlBuilder(whereSqlAndArgs);
+        return findScrollPage(whereSqlBuilder, orderByFieldName, nextKey, limit, isDesc);
+    }
+
+
+    public ScrollPage<T> findScrollPage(WhereSqlBuilder whereSqlBuilder, String orderByFieldName, Serializable nextKey, int limit, boolean isDesc) throws Exception {
+
+        String orderByFieldDbName = toFieldDbName(orderByFieldName);
 
         if (isDesc) {
             if (nextKey != null) {
-                whereSqlBuilder.append("and created <= ?", nextKey);
+                whereSqlBuilder.append("and `" + orderByFieldDbName + "` <= ?", nextKey);
             }
-            whereSqlBuilder.append("order by created desc limit 0,?", (limit + 1));
+            whereSqlBuilder.append("order by `" + orderByFieldDbName + "` desc limit 0,?", (limit + 1));
         } else {
             if (nextKey != null) {
-                whereSqlBuilder.append("and created >= ?", nextKey);
+                whereSqlBuilder.append("and `" + orderByFieldDbName + "` >= ?", nextKey);
             }
-            whereSqlBuilder.append("order by created asc limit 0,?", (limit + 1));
+            whereSqlBuilder.append("order by `" + orderByFieldDbName + "` asc limit 0,?", (limit + 1));
         }
 
 
-        List<T> histories = findByWhere(whereSqlBuilder.getWhereSqlString(), whereSqlBuilder.getWhereArgsArray());
+        List<T> dataList = this.findByWhere(whereSqlBuilder.getWhereSqlString(), whereSqlBuilder.getWhereArgsArray());
 
-        boolean hasMore = histories.size() > limit;
+        boolean hasMore = dataList.size() > limit;
         Long newNextKey = null;
         if (hasMore) {
-            Object newNexObj = histories.get(limit);
+            Object newNexObj = dataList.get(limit);
             ReflectObject reflectObject = new ReflectObject(newNexObj);
-            Object createdValue = reflectObject.getFieldValueLoose("created");
+            Object createdValue = reflectObject.getFieldValueLoose(orderByFieldName);
             newNextKey = CastBasicTypeUtils.toLong(createdValue);
-            histories = histories.subList(0, limit);
+            dataList = dataList.subList(0, limit);
         }
-        return new ScrollPage<>(histories, hasMore, newNextKey);
+        return new ScrollPage<>(dataList, hasMore, newNextKey);
     }
 
 
