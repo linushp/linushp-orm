@@ -2,7 +2,6 @@ package com.github.linushp.orm;
 
 import com.github.linushp.commons.*;
 import com.github.linushp.commons.ifs.CharFilter;
-import com.github.linushp.commons.model.Page;
 import com.github.linushp.orm.model.*;
 import com.github.linushp.orm.utils.ResultSetParser;
 import org.slf4j.Logger;
@@ -315,6 +314,39 @@ public class DataAccessObject<T> {
         }
         return new Page<>(dataList, totalCount, pageNo, pageSize);
     }
+
+
+    public ScrollPage<T> findScrollPageOrderByCreated(Serializable nextKey, int limit, boolean isDesc) throws Exception {
+        WhereSqlBuilder whereSqlBuilder = new WhereSqlBuilder();
+        return findScrollPageOrderByCreated(whereSqlBuilder, nextKey, limit, isDesc);
+    }
+
+
+    public ScrollPage<T> findScrollPageOrderByCreated(WhereSqlBuilder whereSqlBuilder, Serializable nextKey, int limit, boolean isDesc) throws Exception {
+
+        if (isDesc) {
+            whereSqlBuilder.append("and created <= ?", nextKey);
+            whereSqlBuilder.append("order by created desc limit 0,?", (limit + 1));
+        } else {
+            whereSqlBuilder.append("and created >= ?", nextKey);
+            whereSqlBuilder.append("order by created asc limit 0,?", (limit + 1));
+        }
+
+
+        List<T> histories = findByWhere(whereSqlBuilder.getWhereSqlString(), whereSqlBuilder.getWhereArgsArray());
+
+        boolean hasMore = histories.size() > limit;
+        Long newNextKey = null;
+        if (hasMore) {
+            Object newNexObj = histories.get(limit);
+            ReflectObject reflectObject = new ReflectObject(newNexObj);
+            Object createdValue = reflectObject.getFieldValueLoose("created");
+            newNextKey = CastBasicTypeUtils.toLong(createdValue);
+            histories = histories.subList(0, limit);
+        }
+        return new ScrollPage<>(histories, hasMore, newNextKey);
+    }
+
 
 
 

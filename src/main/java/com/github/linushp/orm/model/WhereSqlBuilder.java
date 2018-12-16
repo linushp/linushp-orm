@@ -27,4 +27,12 @@ public class WhereSqlBuilder {
         return new WhereSqlAndArgs(sql, whereSqlArgs);
     }
 
+    public String getWhereSqlString(){
+        return this.whereSql.toString();
+    }
+
+    public Object[] getWhereArgsArray(){
+        return whereSqlArgs.toArray();
+    }
+
 }
