@@ -1,7 +1,5 @@
 package com.github.linushp.orm.model;
 
-import com.github.linushp.commons.CollectionUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,8 +14,14 @@ public class WhereSqlBuilder {
         whereSql.append(" ");
         whereSql.append(sql);
         whereSql.append(" ");
-        List ss = CollectionUtils.toObjectList(args);
-        whereSqlArgs.addAll(ss);
+
+
+        if (args != null && args.length > 0) {
+            for (Object arg : args) {
+                whereSqlArgs.add(arg);
+            }
+        }
+
         return this;
     }
 

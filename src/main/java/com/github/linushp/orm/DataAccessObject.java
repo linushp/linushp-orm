@@ -325,10 +325,14 @@ public class DataAccessObject<T> {
     public ScrollPage<T> findScrollPageOrderByCreated(WhereSqlBuilder whereSqlBuilder, Serializable nextKey, int limit, boolean isDesc) throws Exception {
 
         if (isDesc) {
-            whereSqlBuilder.append("and created <= ?", nextKey);
+            if (nextKey != null) {
+                whereSqlBuilder.append("and created <= ?", nextKey);
+            }
             whereSqlBuilder.append("order by created desc limit 0,?", (limit + 1));
         } else {
-            whereSqlBuilder.append("and created >= ?", nextKey);
+            if (nextKey != null) {
+                whereSqlBuilder.append("and created >= ?", nextKey);
+            }
             whereSqlBuilder.append("order by created asc limit 0,?", (limit + 1));
         }
 
