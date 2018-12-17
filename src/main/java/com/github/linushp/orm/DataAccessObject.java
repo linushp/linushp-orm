@@ -354,12 +354,12 @@ public class DataAccessObject<T> {
         List<T> dataList = this.findByWhere(whereSqlBuilder.getWhereSqlString(), whereSqlBuilder.getWhereArgsArray());
 
         boolean hasMore = dataList.size() > limit;
-        Long newNextKey = null;
+        Serializable newNextKey = null;
         if (hasMore) {
             Object newNexObj = dataList.get(limit);
             ReflectObject reflectObject = new ReflectObject(newNexObj);
             Object createdValue = reflectObject.getFieldValueLoose(nextKeyFieldName);
-            newNextKey = CastBasicTypeUtils.toLong(createdValue);
+            newNextKey =(Serializable)createdValue;
             dataList = dataList.subList(0, limit);
         }
         return new ScrollPage<>(dataList, hasMore, newNextKey);
