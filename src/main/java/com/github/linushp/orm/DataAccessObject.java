@@ -556,10 +556,28 @@ public class DataAccessObject<T> {
         return updateByWhereSql(newValues, "where " + getIdFieldNameQuota() + " = ? ", id);
     }
 
+    public UpdateResult updateByExample(Map<String, Object> newValues, Map<String, Object> whereExample) throws Exception {
+        WhereSqlAndArgs whereSqlNdArgs = toWhereSqlAndArgs(whereExample);
+        return updateByWhereSql(newValues, whereSqlNdArgs.whereSql, whereSqlNdArgs.whereArgs);
+    }
+
+
+    public UpdateResult updateByExample(T newValues, T whereExample) throws Exception {
+        Map<String, Object> whereExampleMap = entityToMap(whereExample);
+        WhereSqlAndArgs whereSqlNdArgs = toWhereSqlAndArgs(whereExampleMap);
+        return updateByWhereSql(newValues, whereSqlNdArgs.whereSql, whereSqlNdArgs.whereArgs);
+    }
+
 
     public UpdateResult updateByWhereSql(T entity, String whereSql, Object... whereArgs) throws Exception {
         Map<String, Object> newValues = entityToMap(entity);
         return updateByWhereSql(newValues, whereSql, whereArgs);
+    }
+
+
+    public UpdateResult updateByWhereSql(T entity, WhereSqlBuilder whereSqlBuilder) throws Exception {
+        Map<String, Object> newValues = entityToMap(entity);
+        return updateByWhereSql(newValues, whereSqlBuilder.getWhereSqlString(), whereSqlBuilder.getWhereArgsArray());
     }
 
 
