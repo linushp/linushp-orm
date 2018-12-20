@@ -836,7 +836,7 @@ public class DataAccessObject<T> {
     }
 
 
-    private String toFieldWhereSql(String fieldName) throws Exception {
+    protected String toFieldWhereSql(String fieldName) throws Exception {
         fieldName = fieldName.trim();
         if (fieldName.isEmpty()) {
             throw new Exception("fieldName can not be empty");
@@ -845,12 +845,12 @@ public class DataAccessObject<T> {
     }
 
 
-    private Map<String, Object> entityToMap(T entity) throws Exception {
+    protected Map<String, Object> entityToMap(T entity) throws Exception {
         return BeanUtils.beanToMap(entity, this.isUnderlineKey, this.isIgnoreNull);
     }
 
 
-    private static class DefaultIdCharFilter implements CharFilter {
+    protected static class DefaultIdCharFilter implements CharFilter {
 
 
         private static final char[] WHITE_LIST = {'-', '_', '~', '.'};
@@ -884,12 +884,12 @@ public class DataAccessObject<T> {
     }
 
 
-    private String getIdFieldDbName() {
+    protected String getIdFieldDbName() {
         return toFieldDbName(this.idFieldName);
     }
 
 
-    private String toFieldDbName(String fieldName) {
+    protected String toFieldDbName(String fieldName) {
         if (this.isUnderlineKey) {
             return StringUtils.camel2Underline(fieldName, true);
         }
@@ -897,7 +897,7 @@ public class DataAccessObject<T> {
     }
 
 
-    private String getIdFieldNameQuota() {
+    protected String getIdFieldNameQuota() {
         return " `" + this.getIdFieldDbName() + "` ";
     }
 
