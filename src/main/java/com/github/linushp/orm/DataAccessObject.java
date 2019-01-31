@@ -607,7 +607,7 @@ public class DataAccessObject<T> {
      * 更新自增字段 + 1
      */
     public UpdateResult increaseById(String field_name, Serializable id) throws Exception {
-        return incOrDecNumberByWhereSql(field_name, 1, "where " + getIdFieldNameQuota() + " = ", id);
+        return incOrDecNumberByWhereSql(field_name, 1, "where " + getIdFieldNameQuota() + " = ?", id);
     }
 
 
@@ -615,7 +615,7 @@ public class DataAccessObject<T> {
      * 更新自增字段 -1
      */
     public UpdateResult decreaseById(String field_name, Serializable id) throws Exception {
-        return incOrDecNumberByWhereSql(field_name, -1, "where " + getIdFieldNameQuota() + " = ", id);
+        return incOrDecNumberByWhereSql(field_name, -1, "where " + getIdFieldNameQuota() + " = ?", id);
     }
 
 
