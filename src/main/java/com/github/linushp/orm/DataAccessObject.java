@@ -25,6 +25,7 @@ public class DataAccessObject<T> {
     public static int maxPageRowSize = 100;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataAccessObject.class);
+    private static final ThreadLocal<Map> mapThreadLocal = new ThreadLocal();
 
     protected Class<T> clazz;
     protected String tableName;
@@ -182,7 +183,7 @@ public class DataAccessObject<T> {
         };
 
         String idString = StringUtils.join(idList, ",", stringParser);
-        String sql = "select " + selectFields + " from " + schemaTableName() + " where `" + toFieldDbName(idFieldName) + "` in (" + idString + ")";
+        String sql = "select " + this.getQuerySelectFields() + " from " + schemaTableName() + " where `" + toFieldDbName(idFieldName) + "` in (" + idString + ")";
         List<Map<String, ?>> mapList = getDataAccess().queryTemp(sql);
         return BeanUtils.mapListToBeanList(clazz, mapList);
     }
@@ -207,7 +208,7 @@ public class DataAccessObject<T> {
     }
 
     public List<T> findByWhere(String whereSql, Object... args) throws Exception {
-        String sql = "select " + selectFields + " from " + schemaTableName() + " " + whereSql;
+        String sql = "select " + this.getQuerySelectFields() + " from " + schemaTableName() + " " + whereSql;
         return getDataAccess().query(clazz, sql, args);
     }
 
@@ -266,10 +267,10 @@ public class DataAccessObject<T> {
      * @throws Exception 可能的异常
      */
     public Page<T> findPage(int pageNo, int pageSize, String whereSql, String orderBy, Object... whereArgs) throws Exception {
-        String fromWhere = "from " + schemaTableName() + " " + whereSql ;
-        String selectSql = "select " + selectFields ;
+        String fromWhere = "from " + schemaTableName() + " " + whereSql;
+        String selectSql = "select " + getQuerySelectFields();
         String countSql = "select count(0)";
-        return findPageAdvanced(pageNo,pageSize,countSql,selectSql,fromWhere,orderBy,whereArgs);
+        return findPageAdvanced(pageNo, pageSize, countSql, selectSql, fromWhere, orderBy, whereArgs);
     }
 
 
@@ -359,13 +360,11 @@ public class DataAccessObject<T> {
             Object newNexObj = dataList.get(limit);
             ReflectObject reflectObject = new ReflectObject(newNexObj);
             Object createdValue = reflectObject.getFieldValueLoose(nextKeyFieldName);
-            newNextKey =(Serializable)createdValue;
+            newNextKey = (Serializable) createdValue;
             dataList = dataList.subList(0, limit);
         }
         return new ScrollPage<>(dataList, hasMore, newNextKey);
     }
-
-
 
 
     /**
@@ -900,5 +899,40 @@ public class DataAccessObject<T> {
     protected String getIdFieldNameQuota() {
         return " `" + this.getIdFieldDbName() + "` ";
     }
+
+    protected String getThreadLocalMapValue(String key) {
+        Map map = mapThreadLocal.get();
+        if (map == null) {
+            return null;
+        }
+        return (String) map.get(key);
+    }
+
+
+    protected void setThreadLocalMapValue(String key, String value) {
+        Map map = mapThreadLocal.get();
+        if (map == null) {
+            map = new HashMap();
+            mapThreadLocal.set(map);
+        }
+        map.put(key, value);
+    }
+
+
+    protected String getQuerySelectFields() {
+        String selectFieldsThreadLocalName = "selectFields:" + this.getClass().getName();
+        String selectFields = this.getThreadLocalMapValue(selectFieldsThreadLocalName);
+        if (StringUtils.isNotBlank(selectFields)) {
+            return selectFields;
+        }
+        return this.selectFields;
+    }
+
+
+    protected void setThreadLocalSelectFields(String selectFields) {
+        String selectFieldsThreadLocalName = "selectFields:" + this.getClass().getName();
+        this.setThreadLocalMapValue(selectFieldsThreadLocalName, selectFields);
+    }
+
 
 }
