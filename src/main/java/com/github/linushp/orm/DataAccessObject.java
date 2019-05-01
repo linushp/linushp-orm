@@ -623,7 +623,8 @@ public class DataAccessObject<T> {
      */
     public UpdateResult incOrDecNumberByWhereSql(String field_name, int num, String whereSql, Object... whereArgs) throws Exception {
         field_name = toFieldDbName(field_name);
-        String sql = "update " + schemaTableName() + " set `" + field_name + "` = `" + field_name + "`  " + num + "  " + whereSql;
+        String numString = num >= 0 ? ("+" + num) : "" + num;
+        String sql = "update " + schemaTableName() + " set `" + field_name + "` = `" + field_name + "`  " + numString + "  " + whereSql;
         return getDataAccess().update(sql, whereArgs);
     }
 
